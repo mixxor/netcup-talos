@@ -1,0 +1,55 @@
+---
+# Traefik as the ingress controller.
+#
+# Two netcup specifics, both in the values file: a DaemonSet on hostPort
+# instead of a Service of type LoadBalancer, and a privileged namespace,
+# because Talos enforces Pod Security "baseline" and baseline forbids host
+# ports. ArgoCD sets that label through managedNamespaceMetadata - CreateNamespace
+# alone would create the namespace without it and every pod would be rejected.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: traefik
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: '1'
+spec:
+  generators:
+    - clusters: {}
+  template:
+    metadata:
+      name: '{{name}}-traefik'
+      annotations:
+        argocd.argoproj.io/sync-wave: '1'
+    spec:
+      project: default
+      destination:
+        server: '{{server}}'
+        namespace: traefik
+      sources:
+        # CHANGE ME: point at your own fork, here and in the other sets.
+        - repoURL: https://github.com/YOUR-ORG/netcup-talos.git
+          targetRevision: main
+          ref: values
+        - repoURL: https://traefik.github.io/charts
+          chart: traefik
+          targetRevision: 41.6.0
+          helm:
+            releaseName: traefik
+            valueFiles: [$values/gitops/values/traefik/values-netcup.yaml]
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        managedNamespaceMetadata:
+          labels:
+            pod-security.kubernetes.io/enforce: privileged
+            pod-security.kubernetes.io/audit: privileged
+            pod-security.kubernetes.io/warn: privileged
+        syncOptions: [CreateNamespace=true, ServerSideApply=true]
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m

@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Static tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.12.5
+
+      - name: Install shellcheck and bats
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck bats
+
+      # test.sh is the whole suite: tofu fmt, tofu validate for every example,
+      # shellcheck, bats, and the guards that keep the module reusable (no
+      # provider blocks, no personal data, no stale paths). It needs no
+      # credentials and no cluster - which is exactly why it belongs in CI.
+      - name: Run test suite
+        run: bash test.sh

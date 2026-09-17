@@ -1,0 +1,25 @@
+.env
+.env-old
+.env.*
+!.env.example
+generated/
+*.log
+
+# OpenTofu: state and working directory stay out, the lock file belongs in the
+# repo (reproducible provider versions).
+**/terraform.tfstate
+**/terraform.tfstate.*
+# Real server names belong to whoever runs this, not to the repository.
+**/terraform.tfvars
+**/.terraform/
+**/.terraform.tfstate.lock.info
+
+# Scratch working directory of e2e.sh.
+examples/e2e-run/
+
+# Handoff notes and scratch work that is not part of the published repo.
+local/
+
+# Long-form write-ups, recon notes and prepared upstream issues. Useful while
+# building this, not part of what someone consumes. The README is self-contained.
+docs/

@@ -1,0 +1,26 @@
+---
+# One replica: two workers and 4 GB each leave little room, and metrics-server
+# losing a node briefly costs you "kubectl top", nothing more.
+replicas: 1
+args:
+  # Talos issues kubelet serving certificates that metrics-server does not trust.
+  - --kubelet-insecure-tls
+  - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+resources:
+  requests:
+    cpu: 50m
+    memory: 100Mi
+  limits:
+    cpu: 100m
+    memory: 200Mi
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ALL]

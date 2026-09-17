@@ -1,0 +1,28 @@
+# Copy to terraform.tfvars and put your server names in. That is the minimum -
+# everything else has a working default.
+#
+#   bash ../../netcup/00-auth.sh     # writes ../../.env
+#   source ../../netcup/env.sh       # exports the token and the user id
+#
+# The map key names the cluster. It becomes the netcup firewall policy name,
+# the nickname prefix in SCP and the credential directory under generated/, so
+# two clusters in one account never collide.
+#
+# Careful: an apply overwrites /dev/vda on every server listed here.
+clusters = {
+  talos = {
+    control_plane_servers = ["v2202000000000000001"]
+    worker_servers        = ["v2202000000000000002"]
+
+    # Longhorn cannot place more replicas than it has workers.
+    longhorn_replica_count = 1
+  }
+}
+
+# presets/ has the same file in other shapes:
+#
+#   presets/complete.tfvars      three control planes, two load balancers, Traefik
+#   presets/gitops.tfvars        ArgoCD manages everything that is not inline
+#   presets/two-clusters.tfvars  prod and staging, side by side
+#
+#   tofu apply -var-file=presets/complete.tfvars

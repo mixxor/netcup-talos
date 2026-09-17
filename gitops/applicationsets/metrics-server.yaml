@@ -1,0 +1,43 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: metrics-server
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: '0'
+spec:
+  generators:
+    - clusters: {}
+  template:
+    metadata:
+      name: '{{name}}-metrics-server'
+      annotations:
+        argocd.argoproj.io/sync-wave: '0'
+    spec:
+      project: default
+      destination:
+        server: '{{server}}'
+        namespace: kube-system
+      sources:
+        # CHANGE ME: point at your own fork, here and in the other sets.
+        - repoURL: https://github.com/YOUR-ORG/netcup-talos.git
+          targetRevision: main
+          ref: values
+        - repoURL: https://kubernetes-sigs.github.io/metrics-server
+          chart: metrics-server
+          targetRevision: 3.14.0
+          helm:
+            releaseName: metrics-server
+            valueFiles: [$values/gitops/values/metrics-server/values-netcup.yaml]
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions: [CreateNamespace=true, ServerSideApply=true]
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
