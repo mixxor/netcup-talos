@@ -26,6 +26,10 @@ jobs:
       - uses: opentofu/setup-opentofu@v1
         with:
           tofu_version: 1.12.5
+          # The wrapper is a node script that does not pass stdin through, so
+          # "tofu console" waits for input that never arrives - the job then
+          # burns its whole timeout in one check.
+          tofu_wrapper: false
 
       - name: Install shellcheck and bats
         run: |

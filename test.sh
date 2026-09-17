@@ -170,14 +170,22 @@ check "documentation matches env.sh" docs_match_env_sh
 # it printed an error, not what it returned.
 # shellcheck disable=SC2329
 presets_evaluate() {
-  local dir=examples/cluster f err bad=0
+  local dir=examples/cluster f err bad=0 limit=()
+  # Not on a plain macOS, so this stays optional rather than a new dependency.
+  command -v timeout >/dev/null && limit=(timeout 120)
   tofu -chdir="$dir" init -backend=false -input=false -no-color >/dev/null || return 1
 
   for f in "$dir/terraform.tfvars.example" "$dir"/presets/*.tfvars; do
     [ -f "$f" ] || continue
-    err=$(echo 'keys(var.clusters)' | tofu -chdir="$dir" console -no-color \
+    # The timeout is not paranoia: a tofu built by a wrapper that swallows stdin
+    # sits here for ever, and CI then reports nothing but its own time limit.
+    err=$(echo 'keys(var.clusters)' | "${limit[@]}" tofu -chdir="$dir" console -no-color \
       -var-file="$(cd "$(dirname "$f")" && pwd)/$(basename "$f")" \
-      -var netcup_user_id=1 -var netcup_refresh_token=dummy 2>&1 >/dev/null)
+      -var netcup_user_id=1 -var netcup_refresh_token=dummy 2>&1 >/dev/null) || {
+      echo "  $(basename "$f"): tofu console did not finish within 120s"
+      bad=1
+      continue
+    }
     if echo "$err" | grep -q 'Error:'; then
       echo "  $(basename "$f"): $(echo "$err" | grep -m1 -A2 'Error:' | tr '\n' ' ')"
       bad=1
