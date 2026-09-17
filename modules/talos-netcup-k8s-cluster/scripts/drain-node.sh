@@ -20,7 +20,7 @@ say()  { echo "[$NODE] $*"; }
 skip() { say "SKIPPED: $*"; exit 0; }
 
 command -v kubectl >/dev/null 2>&1 || skip "no kubectl on this machine"
-[ -n "$KUBECONFIG" ] && [ -r "$KUBECONFIG" ] || skip "no readable kubeconfig"
+[ -r "${KUBECONFIG:-}" ] || skip "no readable kubeconfig"
 kubectl version -o json >/dev/null 2>&1 || skip "the Kubernetes API does not answer"
 kubectl get node "$NODE" >/dev/null 2>&1 || skip "not a node in this cluster"
 

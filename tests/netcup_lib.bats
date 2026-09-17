@@ -8,6 +8,17 @@ setup() {
   source "$REPO_ROOT/netcup/lib/netcup.sh"
 }
 
+# The BSD and GNU spellings of "mtime" collide: "stat -f" means filesystem
+# status on Linux, so the BSD form succeeds there and returns a mount point.
+# nc_token then does arithmetic on "/" and every cached token is a failure.
+@test "nc__mtime returns a unix timestamp, not a mount point" {
+  printf 'x' > "$NC_GEN/probe"
+  run nc__mtime "$NC_GEN/probe"
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ ^[0-9]+$ ]]
+  [ "$output" -gt 1000000000 ]
+}
+
 @test "nc_token fetches a token and caches it" {
   curl() { printf '{"access_token":"AT-1","expires_in":300}'; }
   run nc_token

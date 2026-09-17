@@ -25,7 +25,9 @@ NC_RETRIES="${NC_RETRIES:-4}"
 NC_RETRY_WAIT="${NC_RETRY_WAIT:-3}"
 NC_HTTP_CODE=""
 
-nc__mtime() { stat -f %m "$1" 2>/dev/null || stat -c %Y "$1"; }
+# GNU first: on Linux "stat -f" means filesystem status, so the BSD form
+# succeeds there and returns a mount point instead of a timestamp.
+nc__mtime() { stat -c %Y "$1" 2>/dev/null || stat -f %m "$1"; }
 
 nc_token() {
   local cache="$NC_GEN/access_token"

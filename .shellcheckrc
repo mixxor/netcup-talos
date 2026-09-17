@@ -1,1 +1,4 @@
 source-path=SCRIPTDIR
+# Unreachable-code warning: SC2317 in shellcheck < 0.10, SC2329 after.
+# The check_* helpers here are only ever called indirectly.
+disable=SC2317
