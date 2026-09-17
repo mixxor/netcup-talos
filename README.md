@@ -1,10 +1,19 @@
 # Talos Kubernetes on netcup
 
+[![CI](https://github.com/mixxor/netcup-talos/actions/workflows/ci.yml/badge.svg)](https://github.com/mixxor/netcup-talos/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Talos](https://img.shields.io/badge/Talos-v1.14.0-orange)](https://www.talos.dev/)
+[![OpenTofu](https://img.shields.io/badge/OpenTofu-%E2%89%A5%201.12-yellow)](https://opentofu.org/)
+
 A Kubernetes cluster on ordinary netcup VPS, from an empty disk to a verified
 cluster in a single `tofu apply`. Talos Linux, Cilium, Longhorn, Traefik, plus an
 optional haproxy load balancer because netcup does not offer one.
 
 Put in your server names, apply, done. **You do not need a domain.**
+
+Full write-up, including what it costs and what the HA actually buys:
+[What HA Actually Costs: Kubernetes on netcup for €63/month with Talos and
+OpenTofu](https://www.eucloudcost.com/blog/netcup-cluster/).
 
 The netcup API can neither create nor delete servers, so there is no `apply` that
 brings hardware into existence. The lifecycle is *order once in the panel, then
@@ -162,7 +171,7 @@ provider "netcup" {
 provider "helm" {}   # renders locally only, never talks to a cluster
 
 module "cluster" {
-  source = "github.com/<user>/netcup-talos//modules/talos-netcup-k8s-cluster"
+  source = "github.com/mixxor/netcup-talos//modules/talos-netcup-k8s-cluster"
 
   control_plane_servers = ["v2202...1", "v2202...2", "v2202...3"]
   worker_servers        = ["v2202...4", "v2202...5"]
